@@ -20,12 +20,23 @@ import org.springframework.web.context.annotation.RequestScope;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import de.ruv.springschulung.services.PersonService;
+
 @RestController
 @RequestMapping("/personen")
 @RequestScope
 public class DemoController {
 	
+	private final PersonService service;
+	private final PersonDTOMapper mapper;
 	
+	
+	
+	public DemoController(PersonService service, PersonDTOMapper mapper) {
+		this.service = service;
+		this.mapper = mapper;
+	}
+
 	@GetMapping(path = "/gruss", produces = MediaType.TEXT_PLAIN_VALUE)
 	public ResponseEntity<String> gruss() {
 		return ResponseEntity.ok("Hallo Rest");
@@ -65,10 +76,10 @@ public class DemoController {
 //
 
 	@PutMapping(consumes =  MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Void> saveOrUpdate(@RequestBody @Valid PersonDTO person) { // Wenn idempotent!!!
-		// idempotenter Serviceaufruf zum speichern
-			
-		System.out.println("Person: " + person + " wurde gespeichert");
+	public ResponseEntity<Void> saveOrUpdate(@RequestBody @Valid PersonDTO person) throws Exception { // Wenn idempotent!!!
+		
+		if(service.speichern(mapper.convert(person)))	
+			return ResponseEntity.status(HttpStatus.OK).build();
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 

@@ -16,21 +16,23 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import de.ruv.springschulung.services.PersonServiceException;
+
 @ControllerAdvice
 public class ExceptionHandlerController extends ResponseEntityExceptionHandler{
 	
 	
 	
-//	@ExceptionHandler(RuntimeException.class)
-//    public ResponseEntity<Object> handlePersonenServiceException(RuntimeException ex, WebRequest request) {
-//
-//        Map<String, Object> body = new LinkedHashMap<>();
-//        body.put("timestamp", LocalDateTime.now());
-//        body.put("message", ex.getMessage());
-//        body.put("xyz", "abc");
-//        // Loggen
-//        return ResponseEntity.badRequest().body(body); 
-//    }
+	@ExceptionHandler(PersonServiceException.class)
+    public ResponseEntity<Object> handlePersonenServiceException(RuntimeException ex, WebRequest request) {
+
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        body.put("xyz", "abc");
+        // Loggen
+        return ResponseEntity.badRequest().body(body); 
+    }
 	
 	 @Override
 	    protected ResponseEntity<Object> handleMethodArgumentNotValid(

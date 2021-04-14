@@ -1,5 +1,7 @@
 package de.ruv.springschulung.controllers;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import javax.validation.Valid;
@@ -21,26 +23,24 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import de.ruv.springschulung.services.PersonService;
+import de.ruv.springschulung.services.models.Person;
 
 @RestController
 @RequestMapping("/personen")
 @RequestScope
-public class DemoController {
+public class PersonenController {
 	
 	private final PersonService service;
 	private final PersonDTOMapper mapper;
 	
 	
 	
-	public DemoController(PersonService service, PersonDTOMapper mapper) {
+	public PersonenController(PersonService service, PersonDTOMapper mapper) {
 		this.service = service;
 		this.mapper = mapper;
 	}
 
-	@GetMapping(path = "/gruss", produces = MediaType.TEXT_PLAIN_VALUE)
-	public ResponseEntity<String> gruss() {
-		return ResponseEntity.ok("Hallo Rest");
-	}
+
 
 //	@GetMapping(path = "/person", produces = {MediaType.APPLICATION_JSON_VALUE,MediaType.APPLICATION_XML_VALUE})
 //	public ResponseEntity<PersonDTO> person() {
@@ -49,18 +49,22 @@ public class DemoController {
 //	}
 	
 	@GetMapping(path = "/{id}", produces = {MediaType.APPLICATION_JSON_VALUE})
-	public ResponseEntity<PersonDTO> getPersonById(@PathVariable String id) {
-		if("20".equals(id))
-			return ResponseEntity.notFound().build();
-		return ResponseEntity.ok(PersonDTO.builder().id(id).vorname("John").nachname("Doe").build());
+	public ResponseEntity<PersonDTO> getPersonById(@PathVariable String id) throws Exception{
+		return ResponseEntity.of(service.findePersonMitId(id).map(mapper::convert));
 	}
 
+//	@GetMapping( produces = {MediaType.APPLICATION_JSON_VALUE})
+//	public ResponseEntity<PersonDTO> getPersonByKeyValuePairs(@RequestParam(required = false) String vorname,@RequestParam(required = false) String nachname) {
+//
+//		if(vorname == null) vorname = "*";
+//		if(nachname == null) nachname = "*";
+//		return ResponseEntity.ok(PersonDTO.builder().id("4711").vorname(vorname).nachname(nachname).build());
+//	}
+	
 	@GetMapping( produces = {MediaType.APPLICATION_JSON_VALUE})
-	public ResponseEntity<PersonDTO> getPersonByKeyValuePairs(@RequestParam(required = false) String vorname,@RequestParam(required = false) String nachname) {
+	public ResponseEntity<List<PersonDTO>> getAllePersonen() throws Exception{
 
-		if(vorname == null) vorname = "*";
-		if(nachname == null) nachname = "*";
-		return ResponseEntity.ok(PersonDTO.builder().id("4711").vorname(vorname).nachname(nachname).build());
+		return ResponseEntity.ok(mapper.convert(service.findeAllePersonen()));
 	}
 	
 	
@@ -83,25 +87,25 @@ public class DemoController {
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 
-	@PostMapping(consumes =  MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Void> saveOrUpdatePost(@RequestBody PersonDTO person,  UriComponentsBuilder b) { // Wenn NICHT idempotent!!!
-		// NICHT idempotenter Serviceaufruf zum speichern
-		person.setId(UUID.randomUUID().toString());
-		System.out.println("Person: " + person + " wurde gespeichert");
-		UriComponents uriComponents = b.path("personen/{id}").buildAndExpand(person.getId());
-		return ResponseEntity.created(uriComponents.toUri()).build();
-	}
+//	@PostMapping(consumes =  MediaType.APPLICATION_JSON_VALUE)
+//	public ResponseEntity<Void> saveOrUpdatePost(@RequestBody PersonDTO person,  UriComponentsBuilder b) { // Wenn NICHT idempotent!!!
+//		// NICHT idempotenter Serviceaufruf zum speichern
+//		person.setId(UUID.randomUUID().toString());
+//		System.out.println("Person: " + person + " wurde gespeichert");
+//		UriComponents uriComponents = b.path("personen/{id}").buildAndExpand(person.getId());
+//		return ResponseEntity.created(uriComponents.toUri()).build();
+//	}
 	
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deletePersonById(@PathVariable String id) {
-		System.out.println("Versuche Person mit ID " + id + " zu loeschen");
-		if("20".equals(id))
-			return ResponseEntity.notFound().build();
-		return ResponseEntity.ok().build();
+	public ResponseEntity<Void> deletePersonById(@PathVariable String id) throws Exception{
+		
+		if(service.loeschePersonMitId(id))
+			return ResponseEntity.ok().build();
+		return ResponseEntity.notFound().build();
 	}
 	
 	@DeleteMapping(consumes =  MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Void> deletePersonByDTO(@RequestBody PersonDTO person) {
+	public ResponseEntity<Void> deletePersonByDTO(@RequestBody PersonDTO person) throws Exception {
 		return deletePersonById(person.getId());
 	}
 	

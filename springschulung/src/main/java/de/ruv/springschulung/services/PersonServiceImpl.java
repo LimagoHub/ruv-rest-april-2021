@@ -1,6 +1,7 @@
 package de.ruv.springschulung.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -71,6 +72,38 @@ public class PersonServiceImpl implements PersonService {
 		
 		if(person.getNachname() == null || person.getNachname().length() < 2)
 			throw new PersonServiceException("Nachname muss min 2 Zeichen enthalten.");
+	}
+
+	@Override
+	public Optional<Person> findePersonMitId(String id) throws PersonServiceException {
+		
+		try {
+			return repo.findById(id).map(mapper::convert);
+		} catch (Exception e) {
+			throw new PersonServiceException(e);
+		}
+	}
+
+	@Override
+	public List<Person> findeAllePersonen() throws PersonServiceException{
+		
+		try {
+			return mapper.convert(repo.findeAlle());
+		} catch (Exception e) {
+			throw new PersonServiceException(e);
+		}
+	}
+
+	@Override
+	public boolean loeschePersonMitId(String id) throws PersonServiceException {
+		try {
+			boolean exits = repo.existsById(id);
+			if(exits)
+				repo.deleteById(id);
+			return exits;
+		} catch (Exception e) {
+			throw new PersonServiceException(e);
+		}
 	}
 	
 //	public void bulkspeichern(List<Person> personen) throws PersonServiceException{
